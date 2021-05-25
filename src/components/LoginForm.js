@@ -7,7 +7,6 @@ const LoginForm = () => {
   const [inputFields, setInputFields] = useState({
     email: '',
     password: '',
-    error: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,13 +18,21 @@ const LoginForm = () => {
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
-      .then(res => console.log(res, "Resss"))
-      .catch(() =>
+      .then(res => {
+        onLoginSuccess();
+      })
+      .catch(err => {
+        console.log(err, 'err 26');
         firebase
           .auth()
           .createUserWithEmailAndPassword(email, password)
-          .catch(() => setError('Authentication Failed.')),
-      );
+          .then(res => {
+            onLoginSuccess();
+          })
+          .catch(err => {
+            onLoginFail();
+          });
+      });
   };
 
   const handleChange = (value, name) => {
@@ -33,6 +40,22 @@ const LoginForm = () => {
       ...inputFields,
       [name]: value,
     });
+  };
+
+  const onLoginFail = () => {
+    console.log('faillllllll');
+    setError('Authentication Failed');
+    setLoading(false);
+  };
+
+  const onLoginSuccess = () => {
+    console.log('successsss');
+    setInputFields({
+      email: '',
+      password: '',
+    });
+    setError('');
+    setLoading(false);
   };
 
   return (
