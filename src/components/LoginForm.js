@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Button, Card, CardSection, Input} from './common';
+import {Button, Card, CardSection, Input, Spinner} from './common';
 import firebase from 'firebase';
 import {Text} from 'react-native';
 
@@ -9,18 +9,30 @@ const LoginForm = () => {
     password: '',
     error: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const onButtonPress = () => {
     const {email, password} = inputFields;
+    setError('');
+    setLoading(true);
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
+      .then(res => console.log(res, "Resss"))
       .catch(() =>
         firebase
           .auth()
           .createUserWithEmailAndPassword(email, password)
-          .catch(() => setInputFields({error: 'Authentication Failed.'})),
+          .catch(() => setError('Authentication Failed.')),
       );
+  };
+
+  const handleChange = (value, name) => {
+    setInputFields({
+      ...inputFields,
+      [name]: value,
+    });
   };
 
   return (
@@ -29,25 +41,29 @@ const LoginForm = () => {
         <Input
           placeholder="user@gmail.com"
           value={inputFields.email}
-          onChangeText={email => setInputFields({email})}
+          onChangeText={text => handleChange(text, 'email')}
           label="Email"
         />
       </CardSection>
       <CardSection>
         <Input
-          value={inputFields.password}
           secureTextEntry
           // secureTextEntry={true}
           placeholder="Password"
-          onChangeText={password => setInputFields({password})}
+          value={inputFields.password}
+          onChangeText={text => handleChange(text, 'password')}
           label="Password"
         />
       </CardSection>
 
-      <Text style={styles.errorTextStyle}>{inputFields.error}</Text>
+      <Text style={styles.errorTextStyle}>{error}</Text>
 
       <CardSection>
-        <Button onPress={onButtonPress}>Log in</Button>
+        {loading ? (
+          <Spinner size="small" />
+        ) : (
+          <Button onPress={onButtonPress}>Log in</Button>
+        )}
       </CardSection>
     </Card>
   );
