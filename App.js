@@ -1,10 +1,12 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {Header} from './src/components/common/Header';
+import {Header, Button, Spinner} from './src/components/common';
 import LoginForm from './src/components/LoginForm';
 import firebase from 'firebase';
 
 const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+
   useEffect(() => {
     if (!firebase.apps.length) {
       const config = {
@@ -21,12 +23,45 @@ const App = () => {
     } else {
       firebase.app(); // if already initialized, use that one
     }
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
   }, []);
+
+  const renderContent = () => {
+    switch (isLoggedIn) {
+      case true:
+        return (
+          <View style={{marginLeft: 5, marginRight: 5}}>
+            <Button onPress={() => firebase.auth().signOut()}>Log Out</Button>
+          </View>
+        );
+      case false:
+        return <LoginForm />;
+      default:
+        return (
+          <View style={{marginTop: 15}}>
+            <Spinner size="large" />
+          </View>
+        );
+    }
+  };
 
   return (
     <View>
       <Header headerText="Authentication" />
-      <LoginForm />
+      {renderContent()}
+      {/* {isLoggedIn ? (
+        <View style={{marginLeft: 5, marginRight: 5}}>
+          <Button>Log Out</Button>
+        </View>
+      ) : (
+        <LoginForm />
+      )} */}
     </View>
   );
 };
